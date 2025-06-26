@@ -1,5 +1,5 @@
 build:
-	go build -o bin/hit cmd/hit/hit.go
+	go build -o bin/hit ./cmd/hit
 
 clean:
 	rm -f bin/hit

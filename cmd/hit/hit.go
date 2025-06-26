@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 const logo = `
 
@@ -27,5 +30,21 @@ Options:
 `
 
 func main() {
-	fmt.Printf("%s\n%s\n", logo, usage)
+	config := config{
+		n: 100,
+		c: 2,
+	}
+
+	if err := parseArgs(&config, os.Args[1:]); err != nil {
+		fmt.Printf("%s\n%s", err, usage)
+		os.Exit(1)
+	}
+
+	fmt.Printf(
+		"%s\n\n Sending %d requests to %q with %d concurrent requests\n",
+		logo,
+		config.n,
+		config.url,
+		config.c,
+	)
 }
