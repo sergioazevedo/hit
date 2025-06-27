@@ -15,20 +15,6 @@ const logo = `
 	╚═╝  ╚═╝╚═╝   ╚═╝
 `
 
-const usage = `
-Usage:
-  hit [options]
-
-Options:
-  -url HTTP server url (required)
-
-	-n number of requests
-
-	-c concurrency level
-
-	-rps request per second
-`
-
 func main() {
 	config := config{
 		n: 100,
@@ -36,7 +22,6 @@ func main() {
 	}
 
 	if err := parseArgs(&config, os.Args[1:]); err != nil {
-		fmt.Printf("%s\n%s", err, usage)
 		os.Exit(1)
 	}
 
