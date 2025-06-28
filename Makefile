@@ -3,3 +3,6 @@ build:
 
 clean:
 	rm -f bin/hit
+
+test:
+	go test ./...
