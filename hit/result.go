@@ -53,7 +53,7 @@ func Summarize(results Results) Summary {
 	summary.Duration = time.Since(startedAt)
 	summary.RPS = float64(summary.Requests) / summary.Duration.Seconds()
 	if summary.Requests > 0 {
-		summary.SuccessRate = float64(summary.Requests-summary.Errors) / float64(summary.Requests)
+		summary.SuccessRate = float64(summary.Requests-summary.Errors) / float64(summary.Requests) * 100
 	}
 
 	return summary
