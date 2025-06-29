@@ -27,9 +27,10 @@ func SendN(n int, req *http.Request, opts Options) (Results, error) {
 		return nil, fmt.Errorf("n must be greater than 0")
 	}
 
+	results := runPipeline(n, req, opts)
+
 	return func(yield func(Result) bool) {
-		for range n {
-			result := opts.Send(req)
+		for result := range results {
 			if !yield(result) {
 				return
 			}

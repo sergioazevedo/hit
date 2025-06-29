@@ -39,6 +39,7 @@ func main() {
 		req,
 		hit.Options{
 			Concurrency: config.c,
+			RPS:         config.rps,
 		},
 	)
 	if err != nil {
@@ -55,15 +56,15 @@ func main() {
 	)
 
 	summary := hit.Summarize(results)
-	fmt.Printf(`Summary:
-	Success Rate: %.1f%%
-	RPS: %.1f
-	Requests: %d
-	Errors: %d
-	Bytes: %d
-	Duration: %s
-	Fastest: %s
-	Slowest: %s
+	fmt.Printf(` Summary:
+  Success Rate: %.1f%%
+  RPS: %.1f
+  Requests: %d
+  Errors: %d
+  Bytes: %d
+  Duration: %s
+  Fastest: %s
+  Slowest: %s
 `,
 		summary.SuccessRate,
 		summary.RPS,
