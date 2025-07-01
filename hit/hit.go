@@ -3,19 +3,31 @@ package hit
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
 
-func Send(_ *http.Client, _ *http.Request) Result {
-	const roundTripTime = 100 * time.Millisecond
+func Send(client *http.Client, req *http.Request) Result {
+	var (
+		bytes     int64
+		startedAt time.Time
+		resp      *http.Response
+		err       error
+	)
 
-	time.Sleep(roundTripTime)
+	startedAt = time.Now()
+	resp, err = client.Do(req)
+	if err == nil {
+		defer resp.Body.Close()
+		bytes, err = io.Copy(io.Discard, resp.Body)
+	}
 
 	return Result{
-		Status:   http.StatusOK,
-		Bytes:    10,
-		Duration: roundTripTime,
+		Status:   resp.StatusCode,
+		Bytes:    bytes,
+		Duration: time.Since(startedAt),
+		Error:    err,
 	}
 }
 
