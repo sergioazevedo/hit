@@ -1,42 +1,32 @@
 package hit
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
 )
 
-func produce(n int, req *http.Request) <-chan *http.Request {
+func produce(ctx context.Context, n int, req *http.Request) <-chan *http.Request {
 	out := make(chan *http.Request)
 
 	go func() {
 		defer close(out)
 
 		for range n {
-			out <- req
+			select {
+			case out <- req.Clone(ctx):
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 
 	return out
 }
 
-func runPipeline(n int, req *http.Request, opts Options) <-chan Result {
-	requests := produce(n, req)
-	if opts.RPS > 0 {
-		requests = throttle(
-			requests,
-			time.Second/time.Duration(opts.RPS),
-		)
-	}
-
-	return dispatch(
-		requests,
-		opts.Concurrency,
-		opts.Send,
-	)
-}
-
 func throttle(
+	ctx context.Context,
 	in <-chan *http.Request,
 	delay time.Duration,
 ) <-chan *http.Request {
@@ -47,8 +37,12 @@ func throttle(
 
 		t := time.NewTicker(delay)
 		for req := range in {
-			<-t.C
-			out <- req
+			select {
+			case <-t.C:
+				out <- req
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 
@@ -56,6 +50,7 @@ func throttle(
 }
 
 func dispatch(
+	ctx context.Context,
 	in <-chan *http.Request,
 	concurrency int,
 	send SendFunc,
@@ -71,7 +66,10 @@ func dispatch(
 		go func() {
 			defer waitGroup.Done()
 			for req := range in {
-				out <- send(req)
+				select {
+				case out <- send(req):
+				case <-ctx.Done():
+				}
 			}
 		}()
 	}
@@ -82,4 +80,27 @@ func dispatch(
 	}()
 
 	return out
+}
+
+func runPipeline(
+	ctx context.Context,
+	n int,
+	req *http.Request,
+	opts Options,
+) <-chan Result {
+	requests := produce(ctx, n, req)
+	if opts.RPS > 0 {
+		requests = throttle(
+			ctx,
+			requests,
+			time.Second/time.Duration(opts.RPS),
+		)
+	}
+
+	return dispatch(
+		ctx,
+		requests,
+		opts.Concurrency,
+		opts.Send,
+	)
 }

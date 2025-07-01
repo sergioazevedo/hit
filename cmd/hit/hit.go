@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 
 	"github.com/sergioazevedo/hit/hit"
 )
@@ -28,6 +30,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+	)
+	defer stop()
+
+	if err := runHit(ctx, config); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func runHit(ctx context.Context, config config) error {
 	req, err := http.NewRequest(http.MethodGet, config.url, http.NoBody)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating request: %v\n", err)
@@ -35,6 +50,7 @@ func main() {
 	}
 
 	results, err := hit.SendN(
+		ctx,
 		config.n,
 		req,
 		hit.Options{
@@ -75,4 +91,6 @@ func main() {
 		summary.Fastest,
 		summary.Slowest,
 	)
+
+	return ctx.Err()
 }
