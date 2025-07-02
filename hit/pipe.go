@@ -36,6 +36,8 @@ func throttle(
 		defer close(out)
 
 		t := time.NewTicker(delay)
+		defer t.Stop()
+
 		for req := range in {
 			select {
 			case <-t.C:
@@ -69,6 +71,7 @@ func dispatch(
 				select {
 				case out <- send(req):
 				case <-ctx.Done():
+					return
 				}
 			}
 		}()

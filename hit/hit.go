@@ -14,6 +14,7 @@ func Send(client *http.Client, req *http.Request) Result {
 		startedAt time.Time
 		resp      *http.Response
 		err       error
+		status    int
 	)
 
 	startedAt = time.Now()
@@ -21,10 +22,12 @@ func Send(client *http.Client, req *http.Request) Result {
 	if err == nil {
 		defer resp.Body.Close()
 		bytes, err = io.Copy(io.Discard, resp.Body)
+		status = resp.StatusCode
+
 	}
 
 	return Result{
-		Status:   resp.StatusCode,
+		Status:   status,
 		Bytes:    bytes,
 		Duration: time.Since(startedAt),
 		Error:    err,

@@ -1,8 +1,9 @@
 build:
 	go build -o bin/hit ./cmd/hit
+	go build -o bin/server ./cmd/server
 
 clean:
-	rm -f bin/hit
+	rm bin/*
 
 test:
 	go test ./...
